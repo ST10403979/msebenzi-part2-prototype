@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Msebenzi</string>
+    <string name="tagline">Werkgeleenthede, nader aan die huis.</string>
+
+    <string name="email">E-pos</string>
+    <string name="password">Wagwoord</string>
+    <string name="log_in">Meld Aan</string>
+    <string name="log_out">Meld Af</string>
+    <string name="no_account_register">Het jy nie \'n rekening nie? Registreer</string>
+    <string name="create_account">Skep Rekening</string>
+    <string name="full_name">Volle naam</string>
+    <string name="i_am_a">Ek is \'n</string>
+    <string name="worker">Werker</string>
+    <string name="household">Huishouding</string>
+    <string name="register">Registreer</string>
+
+    <string name="error_invalid_email">Voer asseblief \'n geldige e-posadres in.</string>
+    <string name="error_empty_password">Voer asseblief jou wagwoord in.</string>
+    <string name="error_short_password">Wagwoord moet ten minste 6 karakters wees.</string>
+    <string name="error_empty_name">Voer asseblief jou volle naam in.</string>
+    <string name="error_bad_credentials">Verkeerde e-pos of wagwoord.</string>
+    <string name="error_email_taken">\'n Rekening met daardie e-pos bestaan reeds.</string>
+    <string name="error_server_generic">Iets het verkeerd geloop. Probeer asseblief weer.</string>
+    <string name="error_network">Geen internetverbinding nie. Kyk asseblief jou netwerk en probeer weer.</string>
+    <string name="error_unexpected">\'n Onverwagte fout het voorgekom.</string>
+    <string name="error_all_fields_required">Vul asseblief elke veld in.</string>
+    <string name="error_invalid_budget">Voer asseblief \'n geldige begroting in.</string>
+    <string name="error_posting_job">Kon nie die werk plaas nie. Probeer asseblief weer.</string>
+    <string name="error_loading_jobs">Kon nie werke laai nie — wys jou laaste gestoorde lys.</string>
+    <string name="error_loading_job">Kon nie hierdie werk se besonderhede laai nie.</string>
+    <string name="error_accepting_job">Kon nie hierdie werk op die oomblik aanvaar nie.</string>
+
+    <string name="job_feed_title">Werkslys</string>
+    <string name="no_jobs_yet">Nog geen werke nie. Trek af om te verfris.</string>
+    <string name="post_a_job">Plaas \'n Werk</string>
+    <string name="feature_coming_soon">Hierdie funksie kom in \'n toekomstige opdatering.</string>
+
+    <string name="description">Beskrywing</string>
+    <string name="accept_job">Aanvaar Werk</string>
+    <string name="accepted">Aanvaar</string>
+    <string name="mark_complete">Merk as Voltooi</string>
+    <string name="job_marked_complete">Werk gemerk as voltooi.</string>
+    <string name="view_profile">Bekyk Profiel</string>
+
+    <string name="rate_this_job">Gradeer Hierdie Werk</string>
+    <string name="optional_comment">Kommentaar (opsioneel)</string>
+    <string name="rating_submitted">Dankie — jou gradering is ingedien.</string>
+    <string name="submit">Dien In</string>
+    <string name="cancel">Kanselleer</string>
+    <string name="reviews">Resensies</string>
+    <string name="no_reviews_yet">Nog geen resensies nie.</string>
+
+    <string name="profile_title">Profiel</string>
+    <string name="nav_profile">Profiel</string>
+    <string name="verified">Geverifieer</string>
+    <string name="skills_label">Vaardighede</string>
+    <string name="edit_skills_hint">Jou vaardighede (kommageskei, bv. skoonmaak, tuinwerk)</string>
+    <string name="edit_bio_hint">Kort bio</string>
+    <string name="save_profile">Stoor Profiel</string>
+    <string name="profile_saved">Profiel gestoor.</string>
+    <string name="request_verification">Versoek Verifikasie</string>
+    <string name="verification_requested">Verifikasie versoek — \'n administrateur sal dit hersien.</string>
+    <string name="verification_pending">Verifikasie Hangende</string>
+
+    <string name="no_alerts_yet">Nog geen kennisgewings nie. Nuwe passende werke sal hier verskyn.</string>
+    <string name="error_already_rated">Jy het reeds hierdie werk gegradeer.</string>
+    <string name="error_bio_too_long">Bio moet 500 karakters of minder wees.</string>
+
+    <string name="job_title">Werk titel</string>
+    <string name="category_hint">Kategorie (bv. skoonmaak, tuinwerk, handyman)</string>
+    <string name="location">Ligging</string>
+    <string name="budget_rands">Begroting (R)</string>
+    <string name="post_job_button">Plaas Werk</string>
+
+    <string name="settings_title">Instellings</string>
+    <string name="language">Taal</string>
+    <string name="save_settings">Stoor Instellings</string>
+    <string name="settings_saved">Instellings gestoor.</string>
+
+    <string name="nav_home">Tuis</string>
+    <string name="nav_alerts">Kennisgewings</string>
+    <string name="nav_settings">Instellings</string>
+</resources>

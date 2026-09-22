@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Msebenzi</string>
+    <string name="tagline">Amathuba omsebenzi, kufutshane nekhaya.</string>
+
+    <string name="email">I-imeyile</string>
+    <string name="password">I-password</string>
+    <string name="log_in">Ngena</string>
+    <string name="log_out">Phuma</string>
+    <string name="no_account_register">Awunayo i-akhawunti? Bhalisa</string>
+    <string name="create_account">Yenza I-akhawunti</string>
+    <string name="full_name">Igama elipheleleyo</string>
+    <string name="i_am_a">Ndingu</string>
+    <string name="worker">Umsebenzi</string>
+    <string name="household">Ikhaya</string>
+    <string name="register">Bhalisa</string>
+
+    <string name="error_invalid_email">Nceda ufake i-imeyile esebenzayo.</string>
+    <string name="error_empty_password">Nceda ufake i-password yakho.</string>
+    <string name="error_short_password">I-password kufuneka ibe nezinto ezingama-6 ubuncinci.</string>
+    <string name="error_empty_name">Nceda ufake igama lakho elipheleleyo.</string>
+    <string name="error_bad_credentials">I-imeyile okanye i-password engachanekanga.</string>
+    <string name="error_email_taken">I-akhawunti ene-imeyile leyo sele ikho.</string>
+    <string name="error_server_generic">Kukho into engahambanga kakuhle. Nceda uzame kwakhona.</string>
+    <string name="error_network">Akukho luqhagamshelwano lwe-intanethi. Nceda ujonge inethiwekhi yakho uzame kwakhona.</string>
+    <string name="error_unexpected">Kwenzeke impazamo engalindelekanga.</string>
+    <string name="error_all_fields_required">Nceda ugcwalise onke amabala.</string>
+    <string name="error_invalid_budget">Nceda ufake ibhajethi esebenzayo.</string>
+    <string name="error_posting_job">Ayikwazanga ukubeka umsebenzi. Nceda uzame kwakhona.</string>
+    <string name="error_loading_jobs">Ayikwazanga ukulayisha imisebenzi — kubonisa uluhlu lwakho lokugqibela olugciniweyo.</string>
+    <string name="error_loading_job">Ayikwazanga ukulayisha iinkcukacha zalo msebenzi.</string>
+    <string name="error_accepting_job">Ayikwazanga ukwamkela lo msebenzi ngoku.</string>
+
+    <string name="job_feed_title">Uluhlu Lwemisebenzi</string>
+    <string name="no_jobs_yet">Akukabikho misebenzi okwangoku. Tsala ezantsi ukuhlaziya.</string>
+    <string name="post_a_job">Beka Umsebenzi</string>
+    <string name="feature_coming_soon">Olu phawu luzakufika kuhlaziyo oluzayo.</string>
+
+    <string name="description">Inkcazelo</string>
+    <string name="accept_job">Yamkela Umsebenzi</string>
+    <string name="accepted">Yamkelwe</string>
+    <string name="mark_complete">Phawula Njengokugqityiweyo</string>
+    <string name="job_marked_complete">Umsebenzi uphawulwe njengogqityiweyo.</string>
+    <string name="view_profile">Jonga Iprofayile</string>
+
+    <string name="rate_this_job">Linganisa Lo Msebenzi</string>
+    <string name="optional_comment">Ingxelo (ayimfuneki)</string>
+    <string name="rating_submitted">Enkosi — uphawu lwakho lungeniswe.</string>
+    <string name="submit">Ngenisa</string>
+    <string name="cancel">Rhoxisa</string>
+    <string name="reviews">Uphononongo</string>
+    <string name="no_reviews_yet">Akukabikho uphononongo.</string>
+
+    <string name="profile_title">Iprofayile</string>
+    <string name="nav_profile">Iprofayile</string>
+    <string name="verified">Iqinisekisiwe</string>
+    <string name="skills_label">Izakhono</string>
+    <string name="edit_skills_hint">Izakhono zakho (zahlulwe ngokhefu, umz. ukucoca, unyango lwegadi)</string>
+    <string name="edit_bio_hint">Ibhayografi emfutshane</string>
+    <string name="save_profile">Gcina Iprofayile</string>
+    <string name="profile_saved">Iprofayile igciniwe.</string>
+    <string name="request_verification">Cela Ukuqinisekiswa</string>
+    <string name="verification_requested">Ukuqinisekiswa kuceliwe — umlawuli uzakuhlola.</string>
+    <string name="verification_pending">Ukuqinisekiswa Kusalindiwe</string>
+
+    <string name="no_alerts_yet">Akukabikho zaziso okwangoku. Imisebenzi emitsha efanelekileyo izakubonakala apha.</string>
+    <string name="error_already_rated">Sele uwulinganisile lo msebenzi.</string>
+    <string name="error_bio_too_long">Ibhayografi kufuneka ibe ziinkcukacha ezingama-500 okanye ngaphantsi.</string>
+
+    <string name="job_title">Isihloko somsebenzi</string>
+    <string name="category_hint">Udidi (umz. ukucoca, unyango lwegadi, ukulungisa)</string>
+    <string name="location">Indawo</string>
+    <string name="budget_rands">Ibhajethi (R)</string>
+    <string name="post_job_button">Beka Umsebenzi</string>
+
+    <string name="settings_title">Iisethingi</string>
+    <string name="language">Ulwimi</string>
+    <string name="save_settings">Gcina Iisethingi</string>
+    <string name="settings_saved">Iisethingi zigciniwe.</string>
+
+    <string name="nav_home">Ikhaya</string>
+    <string name="nav_alerts">Izaziso</string>
+    <string name="nav_settings">Iisethingi</string>
+</resources>
