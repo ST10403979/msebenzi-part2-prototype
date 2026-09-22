@@ -6,9 +6,7 @@ services) in a transparent, fair way. This repository contains the Part 2
 working prototype: a Kotlin Android app, a REST API with a hosted database,
 automated tests, and a CI pipeline via GitHub Actions.
 
-> 📹 **Demo video:** [ADD YOUR YOUTUBE/DRIVE LINK HERE]
->
-> 🤖 **AI usage disclosure:** see [`AI_USAGE.md`](./AI_USAGE.md)
+
 
 ---
 
