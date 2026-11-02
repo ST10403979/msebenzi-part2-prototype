@@ -48,6 +48,17 @@ const Job = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    photoMediaId: {
+      // optional photo of the job - id of a row in the `media` table
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    clientRef: {
+      // random id generated on the phone; lets the API ignore a duplicate
+      // when an offline "create job" is replayed more than once
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "jobs",

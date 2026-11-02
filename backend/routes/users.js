@@ -2,7 +2,13 @@
 // Profile and settings endpoints — backs the app's Settings screen
 // (change language, skills) and the Worker Profile & Verification feature.
 const express = require("express");
+const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const User = require("../models/User");
+const Job = require("../models/Job");
+const Media = require("../models/Media");
+const Notification = require("../models/Notification");
+const publicUser = require("../utils/publicUser");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -23,6 +29,7 @@ router.get("/me", requireAuth, async (req, res) => {
 // household viewing a worker's profile before/after a job).
 router.get("/:id", requireAuth, async (req, res) => {
   try {
+    if (!/^\d+$/.test(req.params.id)) return res.status(400).json({ error: "Invalid user id" });
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: "User not found" });
     return res.json(publicUser(user));
@@ -35,11 +42,23 @@ router.get("/:id", requireAuth, async (req, res) => {
 // PUT /api/users/me  — used by the Settings and Profile screens
 router.put("/me", requireAuth, async (req, res) => {
   try {
-    const { name, language, skills, bio } = req.body;
+    const { name, language, skills, bio, avatarMediaId } = req.body;
     const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
     if (name) user.name = name;
+    if (avatarMediaId != null) {
+      // The photo must exist and belong to this user (BLOB storage - see routes/media.js).
+      const media = await Media.findByPk(avatarMediaId);
+      if (!media || media.ownerId !== user.id) {
+        return res.status(400).json({ error: "Unknown image" });
+      }
+      const previous = user.avatarMediaId;
+      user.avatarMediaId = media.id;
+      if (previous && previous !== media.id) {
+        await Media.destroy({ where: { id: previous, ownerId: user.id } }); // drop the old photo
+      }
+    }
     if (language && ["en", "af", "xh"].includes(language)) user.language = language;
     if (typeof skills === "string") user.skills = skills;
     if (typeof bio === "string") {
@@ -85,19 +104,67 @@ router.put("/me/request-verification", requireAuth, async (req, res) => {
   }
 });
 
-function publicUser(user) {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    language: user.language,
-    skills: user.skills,
-    bio: user.bio,
-    verificationStatus: user.verificationStatus,
-    ratingAverage: user.ratingAverage,
-    ratingCount: user.ratingCount,
-  };
-}
+// PUT /api/users/me/fcm-token
+// REAL-TIME PUSH: the app registers its Firebase Cloud Messaging device token here so the
+// server can send push notifications to this phone (see utils/push.js).
+router.put("/me/fcm-token", requireAuth, async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (typeof token !== "string" || token.length < 10 || token.length > 512) {
+      return res.status(400).json({ error: "A valid device token is required" });
+    }
+    // One phone, one account: remove the token from any other user who used this phone before.
+    await User.update({ fcmToken: null }, { where: { fcmToken: token } });
+    await User.update({ fcmToken: token }, { where: { id: req.user.id } });
+    return res.json({ message: "Device registered for push notifications" });
+  } catch (err) {
+    console.error("[users] Register FCM token error:", err.message);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+// DELETE /api/users/me/fcm-token - called on log-out so pushes stop going to this phone
+router.delete("/me/fcm-token", requireAuth, async (req, res) => {
+  try {
+    await User.update({ fcmToken: null }, { where: { id: req.user.id } });
+    return res.json({ message: "Device unregistered" });
+  } catch (err) {
+    console.error("[users] Clear FCM token error:", err.message);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+// DELETE /api/users/me - delete the account (required by Google Play).
+// Personal data is erased: name, email, bio, skills, photo, device token, alerts and
+// uploaded images are removed. The row itself is kept only as an anonymous "Deleted user"
+// so that the other person's job history and ratings stay intact.
+router.delete("/me", requireAuth, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    await Media.destroy({ where: { ownerId: user.id } });
+    await Notification.destroy({ where: { userId: user.id } });
+    await Job.update({ photoMediaId: null }, { where: { postedById: user.id } });
+    await Job.update({ status: "cancelled" }, { where: { postedById: user.id, status: "open" } });
+
+    user.name = "Deleted user";
+    user.email = `deleted-${user.id}@msebenzi.invalid`;
+    user.passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
+    user.bio = null;
+    user.skills = null;
+    user.avatarMediaId = null;
+    user.fcmToken = null;
+    user.googleId = null;
+    user.verificationStatus = "unverified";
+    await user.save();
+
+    console.log(`[users] Account ${user.id} deleted and anonymised`);
+    return res.json({ message: "Account deleted" });
+  } catch (err) {
+    console.error("[users] Delete account error:", err.message);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 module.exports = router;

@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.msebenzi.app.adapters.NotificationAdapter
@@ -15,11 +14,12 @@ import com.msebenzi.app.databinding.ActivityAlertsBinding
 import kotlinx.coroutines.launch
 
 /**
- * Feature: Targeted job alerts. Shows the notifications the backend
- * generated for this specific user (see backend/utils/notify.js) — new
- * matching jobs for workers, and job-status updates for both roles.
+ * Feature: Targeted job alerts. Shows the notifications the backend generated for this
+ * specific user (see backend/utils/notify.js) - new jobs matching a worker's skills, and
+ * job-status updates for both roles. The same alerts are also delivered as system push
+ * notifications (see notify/ package).
  */
-class AlertsActivity : AppCompatActivity() {
+class AlertsActivity : BaseActivity() {
 
     private lateinit var binding: ActivityAlertsBinding
     private lateinit var session: SessionManager
@@ -33,33 +33,39 @@ class AlertsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAlertsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applyInsets(binding.headerSection, top = true)
+        applyInsets(binding.listContainer, bottom = true, sides = true)
 
         session = SessionManager(this)
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.buttonBack.setOnClickListener { finish() }
 
         adapter = NotificationAdapter { notification ->
             markRead(notification.id)
-            if (notification.jobId != null) {
-                val intent = Intent(this, JobDetailActivity::class.java)
-                intent.putExtra(JobDetailActivity.EXTRA_JOB_ID, notification.jobId)
-                startActivity(intent)
+            val jobId = notification.jobId
+            if (jobId != null) {
+                startActivity(Intent(this, JobDetailActivity::class.java).putExtra(JobDetailActivity.EXTRA_JOB_ID, jobId))
             }
         }
         binding.recyclerNotifications.layoutManager = LinearLayoutManager(this)
         binding.recyclerNotifications.adapter = adapter
+    }
 
+    override fun onResume() {
+        super.onResume()
         loadNotifications()
     }
 
     private fun loadNotifications() {
-        val token = session.getBearerToken() ?: return
+        val token = session.getBearerToken() ?: return forceLogout()
         lifecycleScope.launch {
             try {
                 val response = RetrofitClient.api.getNotifications(token)
-                if (response.isSuccessful && response.body() != null) {
-                    val notifications = response.body()!!
+                val notifications = response.body()
+                if (response.isSuccessful && notifications != null) {
                     adapter.submitList(notifications)
                     binding.textEmpty.visibility = if (notifications.isEmpty()) View.VISIBLE else View.GONE
+                } else if (response.code() == 401) {
+                    forceLogout()
                 } else {
                     Toast.makeText(this@AlertsActivity, R.string.error_server_generic, Toast.LENGTH_SHORT).show()
                 }

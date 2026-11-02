@@ -8,24 +8,29 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Single shared Retrofit instance for the whole app. The base URL comes
- * from BuildConfig.API_BASE_URL, which is set in app/build.gradle.kts —
- * point that at your own hosted API before recording the demo video.
+ * Single shared Retrofit instance for the whole app. The base URL comes from
+ * BuildConfig.API_BASE_URL (set in app/build.gradle.kts).
+ *
+ * The hosted API runs on a free Render instance that "sleeps" when idle, so the first
+ * request after a while can take up to a minute; the timeouts below allow for that.
  */
 object RetrofitClient {
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
+        // Bodies contain tokens/passwords, so only log them in debug builds.
         level = if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor.Level.BODY
+            HttpLoggingInterceptor.Level.BASIC
         } else {
             HttpLoggingInterceptor.Level.NONE
         }
     }
 
-    private val okHttpClient = OkHttpClient.Builder()
+    /** Shared OkHttp client (also reused by Coil for authenticated image downloads). */
+    val okHttpClient: OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
     val api: ApiService by lazy {
@@ -36,4 +41,7 @@ object RetrofitClient {
             .build()
             .create(ApiService::class.java)
     }
+
+    /** Full URL of a stored image BLOB. */
+    fun mediaUrl(mediaId: Int): String = "${BuildConfig.API_BASE_URL}api/media/$mediaId"
 }

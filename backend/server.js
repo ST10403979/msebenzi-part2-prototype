@@ -9,6 +9,8 @@ const User = require("./models/User");
 const Job = require("./models/Job");
 const Rating = require("./models/Rating");
 const Notification = require("./models/Notification");
+const Media = require("./models/Media");
+const { addMissingColumns } = require("./utils/migrate");
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
@@ -16,8 +18,11 @@ const jobRoutes = require("./routes/jobs");
 const ratingRoutes = require("./routes/ratings");
 const notificationRoutes = require("./routes/notifications");
 const adminRoutes = require("./routes/admin");
+const mediaRoutes = require("./routes/media");
+const path = require("path");
 
 const app = express();
+app.disable("x-powered-by");
 app.use(cors());
 app.use(express.json());
 
@@ -38,6 +43,11 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api", ratingRoutes); // exposes /api/jobs/:id/rate and /api/users/:id/ratings
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/media", mediaRoutes); // BLOB storage for profile + job photos
+
+// Public pages Google Play asks for: a privacy policy and an account-deletion page.
+app.get("/privacy", (req, res) => res.sendFile(path.join(__dirname, "public", "privacy.html")));
+app.get("/delete-account", (req, res) => res.sendFile(path.join(__dirname, "public", "delete-account.html")));
 
 // Generic error handler — makes sure the app never crashes the process
 // on an unexpected error, and never leaks a stack trace to the client.
@@ -53,9 +63,11 @@ async function start() {
     await sequelize.authenticate();
     console.log("[db] Connection established successfully.");
 
-    // sync() creates tables if they don't exist yet. For a class prototype
-    // this is fine; a production app would use migrations instead.
+    // sync() creates tables if they don't exist yet (e.g. the new `media` table);
+    // addMissingColumns() then adds the Part 3 columns to tables created in Part 2.
+    // For a class project this is fine; a production app would use real migrations.
     await sequelize.sync();
+    await addMissingColumns(sequelize);
     console.log("[db] Models synced.");
 
     app.listen(PORT, () => {

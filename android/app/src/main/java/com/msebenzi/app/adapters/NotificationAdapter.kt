@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.msebenzi.app.data.AppNotification
 import com.msebenzi.app.databinding.ItemNotificationBinding
+import com.msebenzi.app.notify.NotificationHelper
 
 class NotificationAdapter(private val onClick: (AppNotification) -> Unit) :
     ListAdapter<AppNotification, NotificationAdapter.NotificationViewHolder>(NotificationDiff()) {
@@ -25,18 +26,10 @@ class NotificationAdapter(private val onClick: (AppNotification) -> Unit) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(notification: AppNotification) {
-            binding.textType.text = friendlyType(notification.type)
+            binding.textType.text = NotificationHelper.titleFor(binding.root.context, notification.type).uppercase()
             binding.textMessage.text = notification.message
             binding.unreadDot.visibility = if (notification.isRead) View.INVISIBLE else View.VISIBLE
             binding.root.setOnClickListener { onClick(notification) }
-        }
-
-        private fun friendlyType(type: String): String = when (type) {
-            "JOB_MATCH" -> "NEW JOB MATCH"
-            "JOB_ACCEPTED" -> "JOB ACCEPTED"
-            "JOB_COMPLETED" -> "JOB COMPLETED"
-            "RATING_RECEIVED" -> "NEW RATING"
-            else -> type
         }
     }
 

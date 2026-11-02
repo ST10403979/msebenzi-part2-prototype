@@ -1,7 +1,9 @@
 package com.msebenzi.app.data
 
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -10,17 +12,26 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
- * Defines every REST call the app makes against the Msebenzi API
- * (see /backend in the project root). Retrofit generates the actual
- * networking code from this interface at compile time.
+ * Defines every REST call the app makes against the Msebenzi API (see /backend).
+ * Retrofit generates the networking code from this interface at compile time.
+ *
+ * Reference: Square (2024) Retrofit. Available at: https://square.github.io/retrofit/
  */
 interface ApiService {
+
+    // ---- Authentication ----
 
     @POST("api/auth/register")
     suspend fun register(@Body body: RegisterRequest): Response<AuthResponse>
 
     @POST("api/auth/login")
     suspend fun login(@Body body: LoginRequest): Response<AuthResponse>
+
+    /** Single sign-on with a Google ID token (verified server-side). */
+    @POST("api/auth/google")
+    suspend fun googleLogin(@Body body: GoogleLoginRequest): Response<AuthResponse>
+
+    // ---- Profile & settings ----
 
     @GET("api/users/me")
     suspend fun getProfile(@Header("Authorization") token: String): Response<User>
@@ -31,23 +42,46 @@ interface ApiService {
         @Body body: UpdateProfileRequest
     ): Response<Map<String, Any>>
 
+    @DELETE("api/users/me")
+    suspend fun deleteAccount(@Header("Authorization") token: String): Response<Map<String, Any>>
+
+    @PUT("api/users/me/fcm-token")
+    suspend fun registerFcmToken(
+        @Header("Authorization") token: String,
+        @Body body: FcmTokenRequest
+    ): Response<Map<String, Any>>
+
+    @DELETE("api/users/me/fcm-token")
+    suspend fun clearFcmToken(@Header("Authorization") token: String): Response<Map<String, Any>>
+
+    // ---- Blob storage (images) ----
+
+    /** Uploads raw image bytes (Content-Type image/jpeg) and returns the new media id. */
+    @POST("api/media")
+    suspend fun uploadMedia(
+        @Header("Authorization") token: String,
+        @Body body: RequestBody
+    ): Response<MediaUploadResponse>
+
+    // ---- Jobs ----
+
     @GET("api/jobs")
     suspend fun getJobs(
         @Header("Authorization") token: String,
         @Query("status") status: String? = null
-    ): Response<List<Job>>
+    ): Response<List<JobDto>>
 
     @GET("api/jobs/{id}")
     suspend fun getJob(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ): Response<Job>
+    ): Response<JobDto>
 
     @POST("api/jobs")
     suspend fun createJob(
         @Header("Authorization") token: String,
         @Body body: CreateJobRequest
-    ): Response<Job>
+    ): Response<JobDto>
 
     @PUT("api/jobs/{id}/accept")
     suspend fun acceptJob(
@@ -89,7 +123,7 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<Map<String, Any>>
 
-    // ---- Feature: Targeted job alerts (in-app) ----
+    // ---- Feature: Targeted job alerts ----
 
     @GET("api/notifications")
     suspend fun getNotifications(

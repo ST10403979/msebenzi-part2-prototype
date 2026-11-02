@@ -64,6 +64,21 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: 0,
     },
+    avatarMediaId: {
+      // profile photo - id of a row in the `media` table (BLOB storage)
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    fcmToken: {
+      // Firebase Cloud Messaging device token for real-time push notifications
+      type: DataTypes.STRING(512),
+      allowNull: true,
+    },
+    googleId: {
+      // Google account id ("sub") for single sign-on users
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "users",

@@ -2,84 +2,121 @@ package com.msebenzi.app
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.util.Patterns
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.msebenzi.app.data.LoginRequest
 import com.msebenzi.app.data.RegisterRequest
 import com.msebenzi.app.data.RetrofitClient
+import com.msebenzi.app.data.SessionManager
+import com.msebenzi.app.data.Validators
 import com.msebenzi.app.databinding.ActivityRegisterBinding
+import com.msebenzi.app.notify.PushRegistrar
+import com.msebenzi.app.util.LocaleHelper
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-class RegisterActivity : AppCompatActivity() {
+/**
+ * Registration with input validation. The password is sent over HTTPS and hashed with bcrypt
+ * on the server - it is never stored in plain text anywhere.
+ */
+class RegisterActivity : BaseActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
-
-    companion object {
-        private const val TAG = "RegisterActivity"
-    }
+    private lateinit var session: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applyInsets(binding.headerSection, top = true)
+        applyInsets(binding.root, bottom = true, sides = true)
 
+        session = SessionManager(this)
+
+        binding.buttonBack.setOnClickListener { finish() }
         binding.buttonRegister.setOnClickListener { attemptRegister() }
+        binding.toggleRole.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                binding.textRoleHint.setText(
+                    if (checkedId == R.id.buttonRoleWorker) R.string.role_hint_worker else R.string.role_hint_household
+                )
+            }
+        }
     }
 
     private fun attemptRegister() {
-        val name = binding.inputName.text?.toString()?.trim().orEmpty()
-        val email = binding.inputEmail.text?.toString()?.trim().orEmpty()
-        val password = binding.inputPassword.text?.toString().orEmpty()
-        val role = if (binding.radioHousehold.isChecked) "household" else "worker"
+        val name = binding.inputName.text.toString().trim()
+        val email = binding.inputEmail.text.toString().trim()
+        val password = binding.inputPassword.text.toString()
+        val role = if (binding.toggleRole.checkedButtonId == R.id.buttonRoleWorker) "worker" else "household"
 
-        if (name.isEmpty()) {
-            showError(getString(R.string.error_empty_name)); return
+        if (!Validators.isValidName(name)) {
+            showError(getString(R.string.error_name_required))
+            return
         }
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showError(getString(R.string.error_invalid_email)); return
+        if (!Validators.isValidEmail(email)) {
+            showError(getString(R.string.error_invalid_email))
+            return
         }
-        if (password.length < 6) {
-            showError(getString(R.string.error_short_password)); return
+        if (!Validators.isValidPassword(password)) {
+            showError(getString(R.string.error_password_short))
+            return
         }
 
         setLoading(true)
         lifecycleScope.launch {
             try {
-                val response = RetrofitClient.api.register(
-                    RegisterRequest(name = name, email = email, password = password, role = role)
-                )
-                if (response.isSuccessful) {
-                    Log.i(TAG, "Registration succeeded for $email")
-                    // Send the user to log in with their new credentials.
-                    startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
-                    finish()
-                } else if (response.code() == 409) {
+                val api = RetrofitClient.api
+                val response = api.register(RegisterRequest(name, email, password, role, LocaleHelper.deviceLanguage()))
+                if (response.code() == 409) {
+                    setLoading(false)
                     showError(getString(R.string.error_email_taken))
+                    return@launch
+                }
+                if (!response.isSuccessful) {
+                    setLoading(false)
+                    showError(getString(R.string.error_server_generic))
+                    return@launch
+                }
+
+                // The API returns a token on register; if an older server doesn't, log in instead.
+                var token = response.body()?.token
+                var user = response.body()?.user
+                if (token == null || user == null) {
+                    val login = api.login(LoginRequest(email, password))
+                    token = login.body()?.token
+                    user = login.body()?.user
+                }
+                if (token != null && user != null) {
+                    session.saveSession(token, user)
+                    PushRegistrar.registerCurrentToken(this@RegisterActivity)
+                    startActivity(
+                        Intent(this@RegisterActivity, MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    )
+                    finish()
                 } else {
+                    setLoading(false)
                     showError(getString(R.string.error_server_generic))
                 }
             } catch (e: IOException) {
-                Log.w(TAG, "Network error during registration: ${e.message}")
+                setLoading(false)
                 showError(getString(R.string.error_network))
             } catch (e: Exception) {
-                Log.e(TAG, "Unexpected error during registration", e)
-                showError(getString(R.string.error_unexpected))
-            } finally {
                 setLoading(false)
+                showError(getString(R.string.error_server_generic))
             }
         }
-    }
-
-    private fun showError(message: String) {
-        binding.textError.text = message
-        binding.textError.visibility = View.VISIBLE
     }
 
     private fun setLoading(loading: Boolean) {
         binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
         binding.buttonRegister.isEnabled = !loading
+        if (loading) binding.textError.visibility = View.GONE
+    }
+
+    private fun showError(message: String) {
+        binding.textError.text = message
+        binding.textError.visibility = View.VISIBLE
     }
 }

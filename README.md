@@ -1,215 +1,186 @@
-# Msebenzi 🛠️
+<p align="center"><img src="docs/images/banner.png" alt="Msebenzi - work opportunities, closer to home" width="100%"></p>
 
-**Msebenzi** ("work" in isiXhosa) is an Android app that connects households
-with local informal workers (cleaners, gardeners, handymen, and similar
-services) in a transparent, fair way. This repository contains the Part 2
-working prototype: a Kotlin Android app, a REST API with a hosted database,
-automated tests, and a CI pipeline via GitHub Actions.
+# Msebenzi 🛠️ - Final PoE (Part 3)
 
+**Msebenzi** ("work" in isiXhosa) is an Android app that connects **households** with trusted **local workers** (cleaners, gardeners,
+handymen, painters, plumbers, electricians, movers, laundry) in a fair and transparent way. This repository contains the **final,
+publication-ready version**: a Kotlin Android app, a Node/Express REST API with a hosted PostgreSQL database, automated tests and a
+GitHub Actions pipeline.
 
-
----
-
-## 1. What the app does
-
-| Feature | Status in this prototype |
+| | |
 |---|---|
-| Register & log in (password encrypted) | ✅ Implemented — bcrypt hashing server-side, JWT session, EncryptedSharedPreferences client-side |
-| Change settings (language, logout) | ✅ Implemented — English / Afrikaans / isiXhosa |
-| Job feed (browse open jobs) | ✅ Implemented — offline-first, cached in Room |
-| Post a job (household) | ✅ Implemented, with input validation |
-| View job details & accept a job (worker) | ✅ Implemented, with offline queueing |
-| Connects to a hosted REST API + database | ✅ Implemented — Node/Express + PostgreSQL |
-| Handles invalid input without crashing | ✅ Implemented across all forms |
-| Offline support (Room cache + sync outbox) | ✅ Implemented — see `data/JobRepository.kt`, `data/SyncWorker.kt` |
-| **User Defined 1: Trusted ratings and reviews** | ✅ Implemented — rate a completed job 1–5 stars, average shown on profile |
-| **User Defined 2: Worker profile and verification** | ✅ Implemented — skills, bio, reputation, admin-approved verification badge |
-| **User Defined 3: Targeted job alerts** | ✅ Implemented (in-app, not push) — workers are notified only when a job matches their listed skills |
-| In-app chat, push notifications (FCM) | 🕒 Deferred to final PoE (per assignment brief, not all features are required for the prototype) |
+| 📹 **Demo video** | **[ADD YOUR VIDEO LINK HERE]** |
+| 📝 **Release notes** | [RELEASE_NOTES.md](RELEASE_NOTES.md) |
+| 🤖 **AI usage disclosure** | [AI_USAGE.md](AI_USAGE.md) |
+| 🌐 **Hosted API** | https://msebenzi-api.onrender.com/ ([privacy policy](https://msebenzi-api.onrender.com/privacy)) |
+| ✅ **Build status** | Check the *Actions* tab - every push runs the backend tests, the Android unit tests and builds the APK |
 
-### 1.1 How the three "User Defined" features work
+---
 
-**Trusted ratings and reviews** — once a job is marked complete, either
-party can rate the other (1–5 stars + optional comment). Ratings can't be
-left on an open/accepted job, can't be duplicated, and only the two people
-actually on that job can rate each other (`backend/routes/ratings.js`).
-The ratee's `ratingAverage`/`ratingCount` update automatically and show
-on their Profile screen.
+## 1. Purpose of the app
 
-**Worker profile and verification** — every worker has a profile
-(`ProfileActivity`) showing their skills, a short bio, star rating, and a
-"Verified" badge. A worker can request verification from their own
-profile; approving it is a deliberately minimal admin action (this
-assignment doesn't call for a full admin UI), done via:
+Informal workers and households struggle to find each other, agree a fair price and trust each other. Msebenzi gives both sides a
+**transparent job card** (service, place, budget, photo and status visible *before* anyone commits), **ratings and verification** to
+build trust, and it works on **patchy data**: the whole core flow keeps working offline and syncs when the connection returns. It is
+available in **English, Afrikaans and isiXhosa**.
 
+### Services we offer
+<p align="center"><img src="docs/images/services.png" alt="The eight services offered in the app" width="90%"></p>
+
+### Screenshots
+> Add your own phone screenshots to `docs/images/` and uncomment these lines.
+
+<!--
+| Home & services | Job detail | Post a job | Profile |
+|---|---|---|---|
+| ![](docs/images/shot-home.png) | ![](docs/images/shot-detail.png) | ![](docs/images/shot-post.png) | ![](docs/images/shot-profile.png) |
+| Alerts | Settings (isiXhosa) | Offline banner | Login |
+| ![](docs/images/shot-alerts.png) | ![](docs/images/shot-settings.png) | ![](docs/images/shot-offline.png) | ![](docs/images/shot-login.png) |
+-->
+
+---
+
+## 2. Feature checklist (Part 3 brief)
+
+| Requirement | Where it is implemented |
+|---|---|
+| Register & log in, **password encrypted** | `RegisterActivity`, `LoginActivity` → `routes/auth.js` (bcrypt hash); token kept in `EncryptedSharedPreferences` (`SessionManager`) |
+| **Single sign-on (SSO)** | `util/GoogleSignInHelper.kt` (Credential Manager) → `POST /api/auth/google` → `utils/googleAuth.js` |
+| **Settings** (language, notifications, sync, account) | `SettingsActivity`, `util/LocaleHelper.kt` |
+| **REST API** connected to a hosted **database** | `backend/` on Render + PostgreSQL; Retrofit in `data/ApiService.kt` |
+| **Offline mode with sync** (Room) | `data/JobRepository.kt` (outbox), `data/AppDatabase.kt`, `data/SyncWorker.kt`, connectivity callback in `MsebenziApp.kt` |
+| **Real-time push notifications** | `notify/` (FCM service + poller), `backend/utils/push.js` |
+| **Multi-language** (2+ South African languages) | `res/values` (English), `values-af` (Afrikaans), `values-xh` (isiXhosa) |
+| **Blob storage** | photos stored as BLOBs: `backend/models/Media.js`, `routes/media.js`, `util/ImageUtils.kt` |
+| Part 1 features | ⭐ Trusted ratings & reviews · ⭐ Worker profile & verification · ⭐ Targeted job alerts (see §3) |
+| App icon & final image assets | adaptive + themed icon, 8 service illustrations, Play Store graphics (`store-assets/`) |
+| Handles invalid input without crashing | `data/Validators.kt` + server-side validation + tests |
+| Version control, README, **GitHub Actions** | this repo, `.github/workflows/` |
+| Comments, logging, referencing | KDoc comments throughout, `Log.*` in Kotlin, request logging in `server.js`, references in §9 |
+| Release notes | [RELEASE_NOTES.md](RELEASE_NOTES.md) |
+| Ready for **Google Play** | target API 36, signed release (APK + AAB), privacy policy, in-app account deletion - see [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) |
+
+### 2.1 Innovative features added in this version
+1. **Services gallery with pictures** - tap a service to filter the live feed.
+2. **Offline posting, accepting, completing and rating** - queued in Room, auto-synced the instant you reconnect, duplicate-safe.
+3. **Instant, targeted push notifications** with an automatic fallback so alerts always arrive.
+4. **Google sign-in** with server-side token verification.
+5. **Photo uploads stored as BLOBs** (profile + job photos), served only to signed-in users.
+
+---
+
+## 3. The three user-defined features (from Part 1)
+
+**Trusted ratings and reviews** - after a job is completed either party rates the other 1-5 ★ with an optional comment (one rating
+per person per job; only the two people on the job can rate). The average and review count appear on the profile.
+
+**Worker profile and verification** - photo, skills, bio, reputation and a "Verified" badge. A worker requests verification in the
+app; an admin approves it with a token-protected call (shown in the video):
 ```bash
-curl -X PUT https://<your-api-url>/api/admin/users/<worker-id>/verify \
-  -H "x-admin-token: <your ADMIN_TOKEN from .env>"
+curl -X PUT https://msebenzi-api.onrender.com/api/admin/users/<worker-id>/verify -H "x-admin-token: <ADMIN_TOKEN>"
 ```
 
-Show this curl call in your demo video, then reload the worker's profile
-in the app to show the badge appear.
-
-**Targeted job alerts** — an in-app "Alerts" tab (bottom navigation),
-backed by `backend/routes/notifications.js`. When a household posts a
-job, only workers whose comma-separated `skills` field contains that
-job's category get notified (`backend/utils/notify.js`) — not every
-worker, which is what makes it *targeted*. Households also get notified
-when their job is accepted or completed.
+**Targeted job alerts** - workers choose their services; when a household posts a job, **only matching workers** are alerted (in-app
+Alerts tab, system notification and FCM push). Households are alerted when their job is accepted or completed.
 
 ---
 
-## 2. Project structure
+## 4. Architecture & design considerations
 
 ```
-msebenzi/
-├── backend/              # Node.js + Express REST API
-│   ├── config/db.js      # Sequelize connection (Postgres in prod, SQLite for local dev)
-│   ├── models/           # User, Job
-│   ├── routes/           # auth, users, jobs
-│   ├── middleware/auth.js
-│   ├── tests/            # Jest + Supertest automated tests
-│   └── server.js
-├── android/              # Kotlin Android Studio project
-│   └── app/src/main/java/com/msebenzi/app/
-│       ├── data/         # Models, Retrofit, Room, SessionManager, SyncWorker
-│       ├── adapters/     # RecyclerView adapter
-│       └── *Activity.kt  # Splash, Login, Register, Main (feed), JobDetail, PostJob, Settings
-├── .github/workflows/build.yml   # CI: runs backend tests + builds the Android app
-└── README.md
+┌──────────────────────────── Android app (Kotlin, API 24-36) ────────────────────────────┐
+│ Activities (ViewBinding, Material 3)                                                    │
+│   Splash · Login · Register · Main(feed) · JobDetail · PostJob · Profile · Alerts · Settings │
+│        │                                                                                │
+│ JobRepository ── offline-first ──► Room (jobs + sync_actions outbox)                    │
+│        │                               ▲                                                │
+│        ▼                               │ replays when online                            │
+│ Retrofit/OkHttp ◄──── SyncWorker (WorkManager) ◄── MsebenziApp (connectivity callback)  │
+│ FCM service + NotificationPoller ──► NotificationHelper (system notifications)          │
+└─────────────┬───────────────────────────────────────────────────────────────────────────┘
+              │ HTTPS + JWT
+┌─────────────▼──────────── Node.js / Express API (Render) ──────────────┐   ┌─ Google ─┐
+│ auth · users · jobs · ratings · notifications · media · admin          │──►│ ID-token │
+│ Sequelize ──► PostgreSQL (users, jobs, ratings, notifications, media)  │   │ certs,FCM│
+└─────────────────────────────────────────────────────────────────────────┘   └──────────┘
 ```
+
+- **Offline-first** - informal workers often have intermittent data. The feed reads from Room first, refreshes from the network and never
+  shows a bare error for a connectivity blip. Writes are optimistic and queued.
+- **Security** - bcrypt-hashed passwords; JWT in encrypted storage; Google ID tokens verified server-side; photos served only to signed-in
+  users; HTTPS only (cleartext disabled); input validated on the phone *and* the server; role rules enforced on the server.
+- **Privacy** - minimal data, no ads/trackers, in-app account deletion that erases personal data, public privacy policy.
+- **Accessibility & inclusivity** - three languages, large touch targets, content descriptions, readable contrast, edge-to-edge with correct insets.
+- **Resilience** - every network call is wrapped; timeouts allow for Render's free-tier wake-up; expired sessions return to login cleanly.
+- **Play-ready** - target API 36, adaptive + monochrome icon, per-app language registration, runtime notification permission.
 
 ---
 
-## 3. Running the backend API locally
+## 5. Running the project
 
+### Backend
 ```bash
 cd backend
-cp .env.example .env      # then edit .env if needed
+cp .env.example .env     # edit secrets
 npm install
-npm run dev                # starts on http://localhost:3000
+npm run dev              # http://localhost:3000  (SQLite locally, PostgreSQL when DATABASE_URL is set)
+npm test                 # 54 automated tests
+npm run seed             # optional demo data
 ```
 
-With no `DATABASE_URL` set, the API automatically uses a local SQLite file
-(`msebenzi.sqlite`) so you can develop without provisioning Postgres first.
+### Android
+1. Open the `android/` folder in **Android Studio** (latest stable). Gradle sync downloads everything (SDK Platform 36 included).
+2. Optional config in `android/local.properties` (never committed): `google.web.client.id=...`, `msebenzi.api.url=...`, signing keys.
+3. Optional push: put `google-services.json` in `android/app/`.
+4. Run on a **phone** (USB debugging) or emulator.
 
-Run the automated tests:
+Full account set-up (Google SSO, Firebase, signing, Play Console): **[docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)**.
 
-```bash
-npm test
-```
-
----
-
-## 4. Hosting the API (so the Android app can reach it from your phone)
-
-The app must talk to a database that is genuinely hosted online — not just
-`localhost` — for the demo video. The quickest free option is **Render**:
-
-1. Push this repository to GitHub (see section 6).
-2. Create a free [Render](https://render.com) account.
-3. **New + → PostgreSQL** → create a free database → copy its **Internal/External
-   Connection String**.
-4. **New + → Web Service** → connect your GitHub repo → set:
-   - **Root directory:** `backend`
-   - **Build command:** `npm install`
-   - **Start command:** `npm start`
-   - **Environment variables:**
-     - `DATABASE_URL` = the connection string from step 3
-     - `JWT_SECRET` = any long random string
-     - `ADMIN_TOKEN` = any long random string (used to approve worker verification — see section 1.1)
-5. Deploy. Render will give you a public URL like
-   `https://msebenzi-api.onrender.com`.
-6. Open `android/app/build.gradle.kts` and set `API_BASE_URL` to that URL
-   (must end with a trailing slash `/`).
-7. Rebuild the app.
-
-> Any other host (Railway, Fly.io, a free-tier AWS/Azure instance, etc.)
-> works the same way — the API just needs `DATABASE_URL`, `JWT_SECRET` and `ADMIN_TOKEN`.
+### Hosting
+The API runs on **Render** (web service, root `backend`, build `npm install`, start `npm start`) with a Render **PostgreSQL** database.
+Environment variables: `DATABASE_URL`, `JWT_SECRET`, `ADMIN_TOKEN`, `GOOGLE_WEB_CLIENT_ID`, `FIREBASE_SERVICE_ACCOUNT_JSON`.
+The free tier sleeps after inactivity, so the first request can take ~1 minute.
 
 ---
 
-## 5. Running the Android app
+## 6. Version control & GitHub Actions
 
-1. Open the `android/` folder in **Android Studio** (Hedgehog or newer).
-   Let it sync Gradle — this generates the Gradle wrapper for you
-   automatically the first time.
-2. Confirm `API_BASE_URL` in `app/build.gradle.kts` points at your hosted
-   API (section 4).
-3. Run on a device or emulator with internet access.
-4. Register a **household** account and a **worker** account (e.g. in two
-   emulator instances, or one after logging out of the other) to see the
-   full post → browse → accept flow.
+- Work was committed incrementally to GitHub; the **final commit is tagged `final-poe`**.
+- `.github/workflows/build.yml` - on every push/PR: backend tests → static checks → Android unit tests → debug APK (artifact).
+- `.github/workflows/release.yml` - on a version tag: builds the **signed release APK and AAB** (needs the keystore secrets).
+- No zip files, keystores or secrets are committed (`.gitignore`).
 
-### Testing offline behaviour
-Turn on airplane mode after the job feed has loaded once — the app keeps
-showing the last cached feed (Room), and any job you try to accept while
-offline is queued and automatically synced by `SyncWorker` once you're back
-online.
+## 7. Testing
+See **[docs/TESTING.md](docs/TESTING.md)**: automated suites (backend 54 tests, Android unit tests, static checks) and a manual checklist.
 
----
+## 8. Publishing
+Release signing, store listing text, Data-safety answers and graphics: **[docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** §5-6 and
+**[docs/PLAY_STORE_LISTING.md](docs/PLAY_STORE_LISTING.md)**. Store graphics live in `store-assets/`.
 
-## 6. Version control with GitHub
+## 9. References
 
-```bash
-git init
-git add .
-git commit -m "Initial commit: Msebenzi Part 2 prototype"
-git branch -M main
-git remote add origin https://github.com/<your-username>/msebenzi.git
-git push -u origin main
-```
+Android Developers (2026) *Sign in your user with Credential Manager*. Available at: https://developer.android.com/identity/sign-in/credential-manager [Accessed 16 October 2026].
 
-Commit regularly as you build — the rubric specifically checks for commit
-history showing incremental progress, not one giant commit.
+Android Developers (2026) *Per-app language preferences*. Available at: https://developer.android.com/guide/topics/resources/app-languages [Accessed 16 October 2026].
 
-### GitHub Actions
-`.github/workflows/build.yml` runs automatically on every push to `main`:
-1. Installs backend dependencies and runs the Jest/Supertest test suite.
-2. Builds the Android app's debug APK and runs its unit tests.
+Android Developers (2026) *Save data in a local database using Room*. Available at: https://developer.android.com/training/data-storage/room [Accessed 16 October 2026].
 
-Check the **Actions** tab on GitHub after pushing to see it run. A green
-check ✅ next to your commit means both the API and the app build cleanly
-outside of your own machine — exactly what this requirement is checking for.
+Android Developers (2026) *Schedule tasks with WorkManager*. Available at: https://developer.android.com/topic/libraries/architecture/workmanager [Accessed 16 October 2026].
 
-> **Note on the Gradle wrapper:** this repo does not commit the binary
-> `gradle-wrapper.jar` file. Android Studio generates it for you the first
-> time you open the project locally. CI instead installs Gradle directly
-> (see the comment in `build.yml`) so the pipeline works either way.
+Android Developers (2026) *Create a notification*. Available at: https://developer.android.com/develop/ui/views/notifications/build-notification [Accessed 16 October 2026].
 
----
+Android Developers (2026) *Display content edge-to-edge in your app*. Available at: https://developer.android.com/develop/ui/views/layout/edge-to-edge [Accessed 16 October 2026].
 
-## 7. Design considerations
+Firebase (2026) *Set up a Firebase Cloud Messaging client app on Android*. Available at: https://firebase.google.com/docs/cloud-messaging/android/client [Accessed 16 October 2026].
 
-- **Offline-first**: informal workers often have limited or intermittent
-  data. The job feed is backed by a local Room database that's read first,
-  refreshed from the network when available, and never leaves the user
-  looking at a bare error screen for a connectivity blip.
-- **Security**: passwords are hashed with bcrypt before ever touching the
-  database; the JWT issued at login is stored in `EncryptedSharedPreferences`
-  on-device rather than plain SharedPreferences.
-- **Accessibility & inclusivity**: the app ships in English, Afrikaans and
-  isiXhosa (`values`, `values-af`, `values-xh`) since the target users are
-  South African households and informal workers.
-- **Resilience**: every form validates its input client-side before it
-  ever reaches the network layer, and every network call is wrapped so a
-  timeout or a malformed response shows a friendly message instead of
-  crashing the app.
+Firebase (2026) *Send a message using the FCM HTTP v1 API*. Available at: https://firebase.google.com/docs/cloud-messaging/send-message [Accessed 16 October 2026].
 
----
+Google for Developers (2026) *Verify the Google ID token on your server side*. Available at: https://developers.google.com/identity/gsi/web/guides/verify-google-id-token [Accessed 16 October 2026].
 
-## 8. Known limitations of this prototype
+Google Play Console Help (2026) *Meet Google Play's target API level requirement*. Available at: https://support.google.com/googleplay/android-developer/answer/11926878 [Accessed 16 October 2026].
 
-- In-app chat and real push notifications (FCM) are designed (see the
-  Part 1 document) but not yet implemented — targeted alerts exist as an
-  in-app "Alerts" tab instead of a true push notification, and this is
-  deferred to the final PoE as the brief allows.
-- Worker verification approval is a token-protected API call rather than
-  a full admin dashboard — appropriate scope for this prototype, but call
-  it out explicitly in your demo video (see section 1.1).
-- The free tier of Render spins down after inactivity, so the very first
-  request after a while can take ~30–60 seconds to "wake up" the API —
-  mention this in your demo video if it happens on camera.
-- UI has been polished (rounded cards/fields, colour-coded status chips,
-  a consistent palette) but final branding/asset work is still left for
-  the PoE submission per the assignment brief.
+Square (2024) *Retrofit*. Available at: https://square.github.io/retrofit/ [Accessed 16 October 2026].
+
+Coil Contributors (2024) *Coil - image loading for Android*. Available at: https://coil-kt.github.io/coil/ [Accessed 16 October 2026].
+
+The Independent Institute of Education (2026) *Open Source Coding POE brief*. Vega School / IIE.

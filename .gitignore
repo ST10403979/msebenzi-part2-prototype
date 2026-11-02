@@ -14,7 +14,17 @@ android/captures/
 android/.cxx/
 android/app/release/
 
-# --- OS / editor ---
+# --- Secrets: NEVER commit these ---
+*.jks
+*.keystore
+keystore.properties
+release.jks
+serviceAccount*.json
+firebase-adminsdk*.json
+
+# --- IDE / OS ---
+.idea/
+local.properties
 .DS_Store
 Thumbs.db
 .vscode/
